@@ -22,6 +22,7 @@ jobs:
       - run: npm ci
       - run: npm run compile
       - run: cp package.json typechain-types/package.json
+      - run: cp README.md typechain-types/README.md
       - run: cp .npmrc typechain-types/.npmrc
       - run: cd typechain-types && npm publish
         env:
