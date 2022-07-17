@@ -19,7 +19,6 @@ jobs:
         with:
           node-version: 16
           registry-url: https://npm.pkg.github.com/
-      - run: echo $DOTENV_MUMBAI > .env
       - run: npm ci
       - run: npm run compile
       - run: cp package.json typechain-types/package.json
@@ -27,4 +26,3 @@ jobs:
       - run: cd typechain-types && npm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
-          DOTENV_MUMBAI: ${{secrets.DOTENV_MUMBAI}}
