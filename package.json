@@ -1,5 +1,5 @@
 {
-  "name": "transfersafe-smartcontract",
+  "name": "@transfer-safe/router",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
