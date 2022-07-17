@@ -10,8 +10,8 @@ const config: HardhatUserConfig = {
    networks: {
       hardhat: {},
       polygon_mumbai: {
-         url: API_URL,
-         accounts: [`0x${PRIVATE_KEY}`]
+         url: API_URL || '',
+         accounts: PRIVATE_KEY ? [`0x${PRIVATE_KEY}`] : []
       }
    },
 };
