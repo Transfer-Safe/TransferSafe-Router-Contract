@@ -8,8 +8,7 @@ on:
     types: [created]
 
 jobs:
-  publish-gpr:
-    needs: build
+  build-and-publish:
     runs-on: ubuntu-latest
     permissions:
       contents: read
