@@ -77,4 +77,12 @@ contract TransferSafeRouter is Ownable {
 
         emit PaymentReceived(invoiceId);
     }
+
+    function getNativeFeeBalance() public view returns (uint256) {
+        return nativeFeeBalance;
+    }
+    
+    function getTokenFeeBalance(address tokenType) public view returns (uint256) {
+        return tokensFeeBalances[tokenType];
+    }
 }
