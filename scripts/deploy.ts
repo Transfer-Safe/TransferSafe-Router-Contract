@@ -1,10 +1,10 @@
 import { ethers } from "hardhat";
 
 async function main() {
-  const HelloWorld = await ethers.getContractFactory("HelloWorld");
+  const TransferSafeRouter = await ethers.getContractFactory("TransferSafeRouter");
 
   // Start deployment, returning a promise that resolves to a contract object
-  const hello_world = await HelloWorld.deploy("Hello World!");
+  const hello_world = await TransferSafeRouter.deploy();
   console.log("Contract deployed to address:", hello_world.address);
 }
 
