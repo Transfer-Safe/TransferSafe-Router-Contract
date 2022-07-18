@@ -6,6 +6,7 @@
   "scripts": {
     "build": "tsc",
     "compile": "hardhat compile",
+    "verify": "hardhat verify",
     "deploy": "npm run compile && hardhat run scripts/deploy.ts",
     "release": "release-it"
   },
