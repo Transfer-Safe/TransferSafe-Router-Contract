@@ -4,6 +4,7 @@
   "description": "TransferSafe router smartcontract",
   "main": "index.js",
   "scripts": {
+    "build": "tsc",
     "compile": "hardhat compile",
     "deploy": "npm run compile && hardhat run scripts/deploy.ts",
     "release": "release-it"

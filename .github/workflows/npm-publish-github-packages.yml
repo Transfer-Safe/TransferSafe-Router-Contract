@@ -21,9 +21,10 @@ jobs:
           registry-url: https://npm.pkg.github.com/
       - run: npm ci
       - run: npm run compile
-      - run: cp package.json typechain-types/package.json
-      - run: cp README.md typechain-types/README.md
-      - run: cp .npmrc typechain-types/.npmrc
-      - run: cd typechain-types && npm publish
+      - run: npm run build
+      - run: cp package.json dist/typechain-types/package.json
+      - run: cp README.md dist/typechain-types/README.md
+      - run: cp .npmrc dist/typechain-types/.npmrc
+      - run: cd dist/typechain-types && npm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}

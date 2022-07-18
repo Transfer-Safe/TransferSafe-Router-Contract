@@ -1,6 +1,8 @@
 import 'dotenv/config'
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
+import '@typechain/hardhat'
+import '@nomiclabs/hardhat-ethers'
 
 const { API_URL, PRIVATE_KEY } = process.env;
 
@@ -13,7 +15,7 @@ const config: HardhatUserConfig = {
          url: API_URL || '',
          accounts: PRIVATE_KEY ? [`0x${PRIVATE_KEY}`] : []
       }
-   },
+   }
 };
 
 export default config;
