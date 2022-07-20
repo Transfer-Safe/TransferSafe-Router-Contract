@@ -44,7 +44,7 @@ contract TransferSafeRouter is Ownable {
         emit InvoiceCreated(invoice.id);
     }
 
-    function confirmInvoice(bytes20 invoiceId) public {
+    function confirmInvoice(bytes32 invoiceId) public {
         Invoice memory invoice = invoices[invoiceId];
         require(invoice.balance > 0, "INVOICE_NOT_BALANCED");
         require(invoice.senderAddress == msg.sender, "FORBIDDEN");
@@ -65,7 +65,7 @@ contract TransferSafeRouter is Ownable {
         emit InvoiceWithdrawn(invoices[invoiceId], payoutAmount);
     }
 
-    function deposit(bytes20 invoiceId) payable public {
+    function deposit(bytes32 invoiceId) payable public {
         Invoice memory invoice = invoices[invoiceId];
         require(invoice.receipientAddress == msg.sender, "FORBIDDEN");
         require(invoice.balance == 0, "INVOICE_NOT_BALANCED");
@@ -76,7 +76,7 @@ contract TransferSafeRouter is Ownable {
         emit PaymentReceived(invoiceId);
     }
 
-    function depositErc20(bytes20 invoiceId, address tokenType) public {
+    function depositErc20(bytes32 invoiceId, address tokenType) public {
         Invoice memory invoice = invoices[invoiceId];
         require(invoice.receipientAddress == msg.sender, "FORBIDDEN");
         require(invoice.balance == 0, "INVOICE_NOT_BALANCED");
@@ -97,7 +97,7 @@ contract TransferSafeRouter is Ownable {
         return tokensFeeBalances[tokenType];
     }
 
-    function getInvoice(bytes20 invoiceId) public view returns (Invoice memory) {
+    function getInvoice(bytes32 invoiceId) public view returns (Invoice memory) {
         return invoices[invoiceId];
     }
 
