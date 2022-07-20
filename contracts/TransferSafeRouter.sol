@@ -15,7 +15,10 @@ struct Invoice {
     bool paid;
     bool isNativeToken;
     address tokenType;
-    address receipient;
+    string ref;
+    address receipientAddress;
+    string receipientName;
+    string receipientEmail;
 }
 
 contract TransferSafeRouter is Ownable {
@@ -37,7 +40,7 @@ contract TransferSafeRouter is Ownable {
     function withdrawInvoice(bytes20 invoiceId) public {
         Invoice memory invoice = invoices[invoiceId];
         require(invoice.balance > 0, "INVOICE_NOT_BALANCED");
-        require(invoice.receipient == msg.sender, "FORBIDDEN");
+        require(invoice.receipientAddress == msg.sender, "FORBIDDEN");
         require(invoice.paid == false, "INVOICE_HAS_BEEN_PAID");
         invoices[invoiceId].paid = true;
 
@@ -49,7 +52,7 @@ contract TransferSafeRouter is Ownable {
         } else {
             tokensFeeBalances[invoice.tokenType] += invoice.fee;
             IERC20 token = IERC20(invoice.tokenType);
-            token.transfer(invoice.receipient, payoutAmount);
+            token.transfer(invoice.receipientAddress, payoutAmount);
         }
 
         emit InvoiceWithdrawn(invoices[invoiceId], payoutAmount);
@@ -57,7 +60,7 @@ contract TransferSafeRouter is Ownable {
 
     function deposit(bytes20 invoiceId) payable public {
         Invoice memory invoice = invoices[invoiceId];
-        require(invoice.receipient == msg.sender, "FORBIDDEN");
+        require(invoice.receipientAddress == msg.sender, "FORBIDDEN");
         require(invoice.balance == 0, "INVOICE_NOT_BALANCED");
         require(invoice.amount == msg.value, "INVOICE_NOT_BALANCED");
 
@@ -68,7 +71,7 @@ contract TransferSafeRouter is Ownable {
 
     function depositErc20(bytes20 invoiceId) public {
         Invoice memory invoice = invoices[invoiceId];
-        require(invoice.receipient == msg.sender, "FORBIDDEN");
+        require(invoice.receipientAddress == msg.sender, "FORBIDDEN");
         require(invoice.balance == 0, "INVOICE_NOT_BALANCED");
 
         IERC20 token = IERC20(invoice.tokenType);
