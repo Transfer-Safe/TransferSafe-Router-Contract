@@ -25,6 +25,7 @@ contract TransferSafeRouter is Ownable {
     uint256 nativeFeeBalance = 0;
     mapping(address => uint256) tokensFeeBalances;
     mapping(bytes20 => Invoice) private invoices;
+    mapping(address => bytes20[]) private userInvoices;
 
     event PaymentReceived(bytes20 invoiceId);
     event InvoiceWithdrawn(Invoice invoice, uint256 amount);
@@ -34,6 +35,7 @@ contract TransferSafeRouter is Ownable {
 
     function createInvoice(Invoice memory invoice) public {
         invoices[invoice.id] = invoice;
+        userInvoices[invoice.receipientAddress].push(invoice.id);
         emit InvoiceCreated(invoice.id);
     }
 
@@ -87,5 +89,18 @@ contract TransferSafeRouter is Ownable {
     
     function getTokenFeeBalance(address tokenType) public view returns (uint256) {
         return tokensFeeBalances[tokenType];
+    }
+
+    function getInvoice(bytes20 invoiceId) public view returns (Invoice memory) {
+        return invoices[invoiceId];
+    }
+
+    function getUserInvoices(address user) public view returns (Invoice[] memory) {
+        bytes20[] memory userInvoiceIds = userInvoices[user];
+        Invoice[] memory userInvoicesArray = new Invoice[](userInvoiceIds.length);
+        for (uint256 i = 0; i < userInvoiceIds.length; i++) {
+            userInvoicesArray[i] = invoices[userInvoiceIds[i]];
+        }
+        return userInvoicesArray;
     }
 }
