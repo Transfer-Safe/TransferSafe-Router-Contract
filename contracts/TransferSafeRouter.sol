@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 struct Invoice {
-    bytes20 id;
+    bytes32 id;
     uint256 amount;
     uint256 fee;
     uint256 created;
@@ -27,12 +27,12 @@ struct Invoice {
 contract TransferSafeRouter is Ownable {
     uint256 nativeFeeBalance = 0;
     mapping(address => uint256) tokensFeeBalances;
-    mapping(bytes20 => Invoice) private invoices;
-    mapping(address => bytes20[]) private userInvoices;
+    mapping(bytes32 => Invoice) private invoices;
+    mapping(address => bytes32[]) private userInvoices;
 
-    event PaymentReceived(bytes20 invoiceId);
+    event PaymentReceived(bytes32 invoiceId);
     event InvoiceWithdrawn(Invoice invoice, uint256 amount);
-    event InvoiceCreated(bytes20 invoiceId);
+    event InvoiceCreated(bytes32 invoiceId);
 
     constructor() Ownable() {}
 
@@ -102,7 +102,7 @@ contract TransferSafeRouter is Ownable {
     }
 
     function getUserInvoices(address user) public view returns (Invoice[] memory) {
-        bytes20[] memory userInvoiceIds = userInvoices[user];
+        bytes32[] memory userInvoiceIds = userInvoices[user];
         Invoice[] memory userInvoicesArray = new Invoice[](userInvoiceIds.length);
         for (uint256 i = 0; i < userInvoiceIds.length; i++) {
             userInvoicesArray[i] = invoices[userInvoiceIds[i]];
