@@ -40,6 +40,7 @@ contract TransferSafeRouter is Ownable {
     function createInvoice(Invoice memory invoice) public {
         require(invoices[invoice.id].exist != true, "DUPLICATE_INVOICE");
         invoice.exist = true;
+        invoice.receipientAddress = msg.sender;
         invoices[invoice.id] = invoice;
         userInvoices[invoice.receipientAddress].push(invoice.id);
         emit InvoiceCreated(invoice.id);
