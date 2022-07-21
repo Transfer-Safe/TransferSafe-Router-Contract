@@ -67,7 +67,6 @@ contract TransferSafeRouter is Ownable {
 
     function deposit(string memory invoiceId) payable public {
         Invoice memory invoice = invoices[invoiceId];
-        require(invoice.receipientAddress == msg.sender, "FORBIDDEN");
         require(invoice.balance == 0, "INVOICE_NOT_BALANCED");
         require(invoice.amount == msg.value, "INVOICE_NOT_BALANCED");
 
@@ -78,7 +77,6 @@ contract TransferSafeRouter is Ownable {
 
     function depositErc20(string memory invoiceId, address tokenType) public {
         Invoice memory invoice = invoices[invoiceId];
-        require(invoice.receipientAddress == msg.sender, "FORBIDDEN");
         require(invoice.balance == 0, "INVOICE_NOT_BALANCED");
 
         IERC20 token = IERC20(invoice.tokenType);
