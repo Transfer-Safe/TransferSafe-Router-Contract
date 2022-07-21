@@ -32,6 +32,7 @@ contract TransferSafeRouter is Ownable {
 
     event PaymentReceived(string invoiceId);
     event InvoiceWithdrawn(Invoice invoice, uint256 amount);
+    event InvoiceRefunded(Invoice invoice, uint256 amount);
     event InvoiceCreated(string invoiceId);
 
     constructor() Ownable() {}
@@ -63,6 +64,25 @@ contract TransferSafeRouter is Ownable {
         }
 
         emit InvoiceWithdrawn(invoices[invoiceId], payoutAmount);
+    }
+
+    function refundInvoice(string memory invoiceId) public {
+        Invoice memory invoice = invoices[invoiceId];
+        require(invoice.balance > 0, "INVOICE_NOT_BALANCED");
+        require(invoice.receipientAddress == msg.sender, "FORBIDDEN");
+        require(invoice.paid == false, "INVOICE_HAS_BEEN_PAID");
+
+        uint256 refundAmount = invoice.balance;
+        invoices[invoiceId].balance = 0;
+
+        if (invoice.isNativeToken) {
+            payable(msg.sender).transfer(refundAmount);
+        } else {
+            IERC20 token = IERC20(invoice.tokenType);
+            token.transfer(invoice.receipientAddress, refundAmount);
+        }
+
+        emit InvoiceRefunded(invoices[invoiceId], refundAmount);
     }
 
     function deposit(string memory invoiceId) payable public {
