@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 struct Invoice {
-    bytes32 id;
+    string id;
     uint256 amount;
     uint256 fee;
     uint256 created;
@@ -27,12 +27,12 @@ struct Invoice {
 contract TransferSafeRouter is Ownable {
     uint256 nativeFeeBalance = 0;
     mapping(address => uint256) tokensFeeBalances;
-    mapping(bytes32 => Invoice) private invoices;
-    mapping(address => bytes32[]) private userInvoices;
+    mapping(string => Invoice) private invoices;
+    mapping(address => string[]) private userInvoices;
 
-    event PaymentReceived(bytes32 invoiceId);
+    event PaymentReceived(string invoiceId);
     event InvoiceWithdrawn(Invoice invoice, uint256 amount);
-    event InvoiceCreated(bytes32 invoiceId);
+    event InvoiceCreated(string invoiceId);
 
     constructor() Ownable() {}
 
@@ -44,7 +44,7 @@ contract TransferSafeRouter is Ownable {
         emit InvoiceCreated(invoice.id);
     }
 
-    function confirmInvoice(bytes32 invoiceId) public {
+    function confirmInvoice(string memory invoiceId) public {
         Invoice memory invoice = invoices[invoiceId];
         require(invoice.balance > 0, "INVOICE_NOT_BALANCED");
         require(invoice.senderAddress == msg.sender, "FORBIDDEN");
@@ -65,7 +65,7 @@ contract TransferSafeRouter is Ownable {
         emit InvoiceWithdrawn(invoices[invoiceId], payoutAmount);
     }
 
-    function deposit(bytes32 invoiceId) payable public {
+    function deposit(string memory invoiceId) payable public {
         Invoice memory invoice = invoices[invoiceId];
         require(invoice.receipientAddress == msg.sender, "FORBIDDEN");
         require(invoice.balance == 0, "INVOICE_NOT_BALANCED");
@@ -76,7 +76,7 @@ contract TransferSafeRouter is Ownable {
         emit PaymentReceived(invoiceId);
     }
 
-    function depositErc20(bytes32 invoiceId, address tokenType) public {
+    function depositErc20(string memory invoiceId, address tokenType) public {
         Invoice memory invoice = invoices[invoiceId];
         require(invoice.receipientAddress == msg.sender, "FORBIDDEN");
         require(invoice.balance == 0, "INVOICE_NOT_BALANCED");
@@ -97,12 +97,12 @@ contract TransferSafeRouter is Ownable {
         return tokensFeeBalances[tokenType];
     }
 
-    function getInvoice(bytes32 invoiceId) public view returns (Invoice memory) {
+    function getInvoice(string memory invoiceId) public view returns (Invoice memory) {
         return invoices[invoiceId];
     }
 
     function getUserInvoices(address user) public view returns (Invoice[] memory) {
-        bytes32[] memory userInvoiceIds = userInvoices[user];
+        string[] memory userInvoiceIds = userInvoices[user];
         Invoice[] memory userInvoicesArray = new Invoice[](userInvoiceIds.length);
         for (uint256 i = 0; i < userInvoiceIds.length; i++) {
             userInvoicesArray[i] = invoices[userInvoiceIds[i]];
