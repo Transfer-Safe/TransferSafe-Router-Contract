@@ -71,6 +71,7 @@ contract TransferSafeRouter is Ownable {
         require(invoice.amount == msg.value, "INVOICE_NOT_BALANCED");
 
         invoices[invoiceId].balance = msg.value;
+        invoices[invoiceId].senderAddress = msg.sender;
 
         emit PaymentReceived(invoiceId);
     }
