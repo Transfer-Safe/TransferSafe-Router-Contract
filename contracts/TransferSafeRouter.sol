@@ -12,6 +12,7 @@ struct Invoice {
     uint256 fee;
     uint256 created;
     uint256 balance;
+    uint256 releaseLock;
     bool paid;
     bool isNativeToken;
     address tokenType;
@@ -26,6 +27,7 @@ struct Invoice {
 
 contract TransferSafeRouter is Ownable {
     uint256 nativeFeeBalance = 0;
+    uint256 fee = 50;
     mapping(address => uint256) tokensFeeBalances;
     mapping(string => Invoice) private invoices;
     mapping(address => string[]) private userInvoices;
@@ -41,6 +43,7 @@ contract TransferSafeRouter is Ownable {
         require(invoices[invoice.id].exist != true, "DUPLICATE_INVOICE");
         invoice.exist = true;
         invoice.receipientAddress = msg.sender;
+        invoice.fee = SafeMath.div(SafeMath.mul(invoice.amount, fee), 1000);
         invoices[invoice.id] = invoice;
         userInvoices[invoice.receipientAddress].push(invoice.id);
         emit InvoiceCreated(invoice.id);
@@ -128,5 +131,16 @@ contract TransferSafeRouter is Ownable {
             userInvoicesArray[i] = invoices[userInvoiceIds[i]];
         }
         return userInvoicesArray;
+    }
+
+    function depositFee(address destination, uint256 amount) public onlyOwner {
+        nativeFeeBalance = SafeMath.sub(nativeFeeBalance, amount);
+        payable(destination).transfer(amount);
+    }
+
+    function depositErc20(address destination, address tokenType, uint256 amount) public onlyOwner {
+        tokensFeeBalances[tokenType] = SafeMath.sub(tokensFeeBalances[tokenType], amount);
+        IERC20 token = IERC20(tokenType);
+        token.transfer(destination, amount);
     }
 }
