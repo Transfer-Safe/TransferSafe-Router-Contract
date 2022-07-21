@@ -146,4 +146,12 @@ contract TransferSafeRouter is Ownable {
         IERC20 token = IERC20(tokenType);
         token.transfer(destination, amount);
     }
+
+    function setFee(uint256 newFee) public onlyOwner {
+        fee = newFee;
+    }
+
+    function getFee() view public returns (uint256) {
+        return fee;
+    }
 }
