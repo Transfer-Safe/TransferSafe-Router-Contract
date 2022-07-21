@@ -12,7 +12,6 @@ struct Invoice {
     uint256 fee;
     uint256 created;
     uint256 balance;
-    uint256 releaseLock;
     bool paid;
     bool isNativeToken;
     address tokenType;
@@ -23,6 +22,9 @@ struct Invoice {
     string receipientName;
     string receipientEmail;
     bool exist;
+
+    uint256 releaseLockTimeout;
+    uint256 releaseLockDate;
 }
 
 contract TransferSafeRouter is Ownable {
@@ -43,6 +45,7 @@ contract TransferSafeRouter is Ownable {
         require(invoices[invoice.id].exist != true, "DUPLICATE_INVOICE");
         invoice.exist = true;
         invoice.receipientAddress = msg.sender;
+        invoice.releaseLockDate = block.timestamp + invoice.releaseLockTimeout;
         invoice.fee = SafeMath.div(SafeMath.mul(invoice.amount, fee), 1000);
         invoices[invoice.id] = invoice;
         userInvoices[invoice.receipientAddress].push(invoice.id);
