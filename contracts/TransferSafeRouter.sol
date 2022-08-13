@@ -162,16 +162,27 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
 
     function amountInCurrency(string memory invoiceId, address token) view public returns (uint256) {
         Invoice memory invoice = invoices[invoiceId];
-        require(invoice.exist, "INVOICE_NOT_EXIST");
+        require(invoice.exist, "INVOICE_NOT_EXIST!");
         address chainlinkAddress = config.chainlinkTokensAddresses[token];
         AggregatorV3Interface priceFeed = AggregatorV3Interface(chainlinkAddress);
         (, int256 price, , , ) = priceFeed.latestRoundData();
         uint8 decimals = priceFeed.decimals();
         return SafeMath.mul(
             invoice.amount,
-            SafeMath.mul(uint256(price), 10 ** decimals)
+            SafeMath.div(uint256(price), 10 ** decimals)
         );
     }
     
-    function amountInNativeCurrency() view public returns (uint256) {}
+    function amountInNativeCurrency(string memory invoiceId) view public returns (uint256) {
+        Invoice memory invoice = invoices[invoiceId];
+        require(invoice.exist, "INVOICE_NOT_EXIST!");
+        address chainlinkAddress = config.chainlinkNativeTokenAddress;
+        AggregatorV3Interface priceFeed = AggregatorV3Interface(chainlinkAddress);
+        (, int256 price, , , ) = priceFeed.latestRoundData();
+        uint8 decimals = priceFeed.decimals();
+        return SafeMath.mul(
+            invoice.amount,
+            SafeMath.div(uint256(price), 10 ** decimals)
+        );
+    }
 }
