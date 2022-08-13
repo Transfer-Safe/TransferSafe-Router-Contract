@@ -5,6 +5,8 @@ pragma solidity >=0.8.9;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+import "./RouterConfig.sol";
 
 struct Invoice {
     string id;
@@ -27,9 +29,10 @@ struct Invoice {
     uint256 releaseLockDate;
 }
 
-contract TransferSafeRouter is Ownable {
+contract TransferSafeRouter is Ownable, RouterConfigContract {
     uint256 nativeFeeBalance = 0;
     uint256 fee = 50;
+
     mapping(address => uint256) tokensFeeBalances;
     mapping(string => Invoice) private invoices;
     mapping(address => string[]) private userInvoices;
@@ -39,7 +42,9 @@ contract TransferSafeRouter is Ownable {
     event InvoiceRefunded(Invoice invoice, uint256 amount);
     event InvoiceCreated(string invoiceId);
 
-    constructor() Ownable() {}
+    constructor(uint256 _chainId) Ownable() RouterConfigContract(_chainId) {
+        chainId = _chainId;
+    }
 
     function createInvoice(Invoice memory invoice) public {
         require(invoices[invoice.id].exist != true, "DUPLICATE_INVOICE");
@@ -154,4 +159,19 @@ contract TransferSafeRouter is Ownable {
     function getFee() view public returns (uint256) {
         return fee;
     }
+
+    function amountInCurrency(string memory invoiceId, address token) view public returns (uint256) {
+        Invoice memory invoice = invoices[invoiceId];
+        require(invoice.exist, "INVOICE_NOT_EXIST");
+        address chainlinkAddress = config.chainlinkTokensAddresses[token];
+        AggregatorV3Interface priceFeed = AggregatorV3Interface(chainlinkAddress);
+        (, int256 price, , , ) = priceFeed.latestRoundData();
+        uint8 decimals = priceFeed.decimals();
+        return SafeMath.mul(
+            invoice.amount,
+            SafeMath.mul(uint256(price), 10 ** decimals)
+        );
+    }
+    
+    function amountInNativeCurrency() view public returns (uint256) {}
 }

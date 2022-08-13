@@ -4,7 +4,7 @@ async function main() {
   const TransferSafeRouter = await ethers.getContractFactory("TransferSafeRouter");
 
   // Start deployment, returning a promise that resolves to a contract object
-  const hello_world = await TransferSafeRouter.deploy();
+  const hello_world = await TransferSafeRouter.deploy(80001);
   console.log("Contract deployed to address:", hello_world.address);
 }
 
