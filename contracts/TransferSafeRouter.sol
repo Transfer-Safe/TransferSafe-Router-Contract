@@ -100,7 +100,6 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
     function deposit(string memory invoiceId) payable public {
         Invoice memory invoice = invoices[invoiceId];
         require(invoice.balance == 0, "INVOICE_NOT_BALANCED");
-        require(invoice.amount == msg.value, "INVOICE_NOT_BALANCED");
 
         invoices[invoiceId].balance = msg.value;
         invoices[invoiceId].senderAddress = msg.sender;
@@ -167,10 +166,7 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
         AggregatorV3Interface priceFeed = AggregatorV3Interface(chainlinkAddress);
         (, int256 price, , , ) = priceFeed.latestRoundData();
         uint8 decimals = priceFeed.decimals();
-        return SafeMath.mul(
-            invoice.amount,
-            SafeMath.div(uint256(price), 10 ** decimals)
-        );
+        return convertAmount(invoice.amount, price, decimals);
     }
     
     function amountInNativeCurrency(string memory invoiceId) view public returns (uint256) {
@@ -180,9 +176,16 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
         AggregatorV3Interface priceFeed = AggregatorV3Interface(chainlinkAddress);
         (, int256 price, , , ) = priceFeed.latestRoundData();
         uint8 decimals = priceFeed.decimals();
-        return SafeMath.mul(
-            invoice.amount,
-            SafeMath.div(uint256(price), 10 ** decimals)
+        return convertAmount(invoice.amount, price, decimals);
+    }
+
+    function convertAmount(uint256 amount, int256 price, uint8 decimals) pure private returns (uint256) {
+        return SafeMath.div(
+            SafeMath.mul(
+                amount,
+                uint256(price)
+            ),
+            10 ** decimals
         );
     }
 }
