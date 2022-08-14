@@ -15,6 +15,7 @@ struct Invoice {
     uint256 created;
     uint256 balance;
     bool paid;
+    bool deposited;
     bool isNativeToken;
     address tokenType;
     address[] availableTokenTypes;
@@ -128,7 +129,9 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
     }
 
     function getInvoice(string memory invoiceId) public view returns (Invoice memory) {
-        return invoices[invoiceId];
+        Invoice memory invoice = invoices[invoiceId];
+        invoice.deposited = isDeposited(invoice);
+        return invoice;
     }
 
     function getUserInvoices(address user) public view returns (Invoice[] memory) {
@@ -187,5 +190,19 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
             ),
             10 ** decimals
         );
+    }
+
+    function isDeposited(Invoice memory invoice) view private returns (bool) {
+        if (invoice.balance > 0) {
+            return true;
+        }
+        for (uint256 index = 0; index < invoice.availableTokenTypes.length; index++) {
+            IERC20 token = IERC20(invoice.availableTokenTypes[index]);
+            uint256 balance = token.balanceOf(address(this));
+            if (balance > 0) {
+                return true;
+            }
+        }
+        return false;
     }
 }
