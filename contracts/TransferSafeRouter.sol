@@ -83,7 +83,7 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
             token.transfer(invoice.receipientAddress, payoutAmount);
         }
 
-        invoice.confirmDate = uint32(block.timestamp);
+        invoices[invoiceId].confirmDate = uint32(block.timestamp);
         invoices[invoiceId].paid = true;
 
         emit InvoiceWithdrawn(invoices[invoiceId], payoutAmount);
@@ -105,7 +105,7 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
             token.transfer(invoice.receipientAddress, refundAmount);
         }
 
-        invoice.refundDate = uint32(block.timestamp);
+        invoices[invoiceId].refundDate = uint32(block.timestamp);
 
         emit InvoiceRefunded(invoices[invoiceId], refundAmount);
     }
@@ -117,8 +117,8 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
         invoices[invoiceId].balance = msg.value;
         invoices[invoiceId].senderAddress = msg.sender;
 
-        invoice.depositDate = uint32(block.timestamp);
-        invoice.deposited = true;
+        invoices[invoiceId].depositDate = uint32(block.timestamp);
+        invoices[invoiceId].deposited = true;
 
         emit PaymentReceived(invoiceId);
     }
@@ -132,8 +132,8 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
         invoices[invoiceId].balance = invoice.amount;
         invoices[invoiceId].tokenType = tokenType;
 
-        invoice.depositDate = uint32(block.timestamp);
-        invoice.deposited = true;
+        invoices[invoiceId].depositDate = uint32(block.timestamp);
+        invoices[invoiceId].deposited = true;
 
         emit PaymentReceived(invoiceId);
     }
