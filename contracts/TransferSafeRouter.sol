@@ -25,6 +25,7 @@ struct Invoice {
     string receipientName;
     string receipientEmail;
     bool exist;
+    bool instant;
 
     uint32 releaseLockTimeout;
     uint32 releaseLockDate;
@@ -159,12 +160,12 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
         return userInvoicesArray;
     }
 
-    function depositFee(address destination, uint256 amount) public onlyOwner {
+    function depositFee(address destination, uint256 amount, bool instant) public onlyOwner {
         nativeFeeBalance = SafeMath.sub(nativeFeeBalance, amount);
         payable(destination).transfer(amount);
     }
 
-    function depositErc20(address destination, address tokenType, uint256 amount) public onlyOwner {
+    function depositErc20(address destination, address tokenType, uint256 amount, bool instant) public onlyOwner {
         tokensFeeBalances[tokenType] = SafeMath.sub(tokensFeeBalances[tokenType], amount);
         IERC20 token = IERC20(tokenType);
         token.transfer(destination, amount);
