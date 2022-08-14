@@ -110,7 +110,7 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
         emit InvoiceRefunded(invoices[invoiceId], refundAmount);
     }
 
-    function deposit(string memory invoiceId) payable public {
+    function deposit(string memory invoiceId, bool instant) payable public {
         Invoice memory invoice = invoices[invoiceId];
         require(invoice.balance == 0, "INVOICE_NOT_BALANCED");
 
@@ -123,7 +123,7 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
         emit PaymentReceived(invoiceId);
     }
 
-    function depositErc20(string memory invoiceId, address tokenType) public {
+    function depositErc20(string memory invoiceId, address tokenType, bool instant) public {
         Invoice memory invoice = invoices[invoiceId];
         require(invoice.balance == 0, "INVOICE_NOT_BALANCED");
 
@@ -160,12 +160,12 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
         return userInvoicesArray;
     }
 
-    function depositFee(address destination, uint256 amount, bool instant) public onlyOwner {
+    function widthdrawFee(address destination, uint256 amount) public onlyOwner {
         nativeFeeBalance = SafeMath.sub(nativeFeeBalance, amount);
         payable(destination).transfer(amount);
     }
 
-    function depositErc20(address destination, address tokenType, uint256 amount, bool instant) public onlyOwner {
+    function widthdrawErc20Fee(address destination, address tokenType, uint256 amount) public onlyOwner {
         tokensFeeBalances[tokenType] = SafeMath.sub(tokensFeeBalances[tokenType], amount);
         IERC20 token = IERC20(tokenType);
         token.transfer(destination, amount);
