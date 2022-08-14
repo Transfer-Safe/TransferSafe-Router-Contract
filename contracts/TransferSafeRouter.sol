@@ -12,7 +12,7 @@ struct Invoice {
     string id;
     uint256 amount;
     uint256 fee;
-    uint256 created;
+    uint32 created;
     uint256 balance;
     bool paid;
     bool deposited;
@@ -26,8 +26,11 @@ struct Invoice {
     string receipientEmail;
     bool exist;
 
-    uint256 releaseLockTimeout;
-    uint256 releaseLockDate;
+    uint32 releaseLockTimeout;
+    uint32 releaseLockDate;
+    uint32 depositDate;
+    uint32 confirmDate;
+    uint32 refundDate;
 }
 
 contract TransferSafeRouter is Ownable, RouterConfigContract {
@@ -51,10 +54,14 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
         require(invoices[invoice.id].exist != true, "DUPLICATE_INVOICE");
         invoice.exist = true;
         invoice.receipientAddress = msg.sender;
-        invoice.releaseLockDate = block.timestamp + invoice.releaseLockTimeout;
+        invoice.releaseLockDate = uint32(block.timestamp) + invoice.releaseLockTimeout;
         invoice.fee = SafeMath.div(SafeMath.mul(invoice.amount, fee), 1000);
         invoices[invoice.id] = invoice;
         userInvoices[invoice.receipientAddress].push(invoice.id);
+        invoice.depositDate = 0;
+        invoice.confirmDate = 0;
+        invoice.refundDate = 0;
+        invoice.created = uint32(block.timestamp);
         emit InvoiceCreated(invoice.id);
     }
 
@@ -63,7 +70,6 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
         require(invoice.balance > 0, "INVOICE_NOT_BALANCED");
         require(invoice.senderAddress == msg.sender, "FORBIDDEN");
         require(invoice.paid == false, "INVOICE_HAS_BEEN_PAID");
-        invoices[invoiceId].paid = true;
 
         uint256 payoutAmount = SafeMath.sub(invoices[invoiceId].amount, invoices[invoiceId].fee);
         invoices[invoiceId].balance = 0;
@@ -75,6 +81,9 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
             IERC20 token = IERC20(invoice.tokenType);
             token.transfer(invoice.receipientAddress, payoutAmount);
         }
+
+        invoice.confirmDate = uint32(block.timestamp);
+        invoices[invoiceId].paid = true;
 
         emit InvoiceWithdrawn(invoices[invoiceId], payoutAmount);
     }
@@ -95,6 +104,8 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
             token.transfer(invoice.receipientAddress, refundAmount);
         }
 
+        invoice.refundDate = uint32(block.timestamp);
+
         emit InvoiceRefunded(invoices[invoiceId], refundAmount);
     }
 
@@ -104,6 +115,9 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
 
         invoices[invoiceId].balance = msg.value;
         invoices[invoiceId].senderAddress = msg.sender;
+
+        invoice.depositDate = uint32(block.timestamp);
+        invoice.deposited = true;
 
         emit PaymentReceived(invoiceId);
     }
@@ -116,6 +130,9 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
         token.transferFrom(msg.sender, address(this), invoice.amount);
         invoices[invoiceId].balance = invoice.amount;
         invoices[invoiceId].tokenType = tokenType;
+
+        invoice.depositDate = uint32(block.timestamp);
+        invoice.deposited = true;
 
         emit PaymentReceived(invoiceId);
     }
@@ -130,7 +147,6 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
 
     function getInvoice(string memory invoiceId) public view returns (Invoice memory) {
         Invoice memory invoice = invoices[invoiceId];
-        invoice.deposited = isDeposited(invoice);
         return invoice;
     }
 
@@ -190,19 +206,5 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
             ),
             10 ** decimals
         );
-    }
-
-    function isDeposited(Invoice memory invoice) view private returns (bool) {
-        if (invoice.balance > 0) {
-            return true;
-        }
-        for (uint256 index = 0; index < invoice.availableTokenTypes.length; index++) {
-            IERC20 token = IERC20(invoice.availableTokenTypes[index]);
-            uint256 balance = token.balanceOf(address(this));
-            if (balance > 0) {
-                return true;
-            }
-        }
-        return false;
     }
 }
