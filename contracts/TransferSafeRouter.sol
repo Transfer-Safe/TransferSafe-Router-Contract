@@ -26,6 +26,7 @@ struct Invoice {
     string receipientEmail;
     bool exist;
     bool instant;
+    bool refunded;
 
     uint32 releaseLockTimeout;
     uint32 releaseLockDate;
@@ -62,6 +63,9 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
         invoice.depositDate = 0;
         invoice.confirmDate = 0;
         invoice.refundDate = 0;
+        invoice.refunded = false;
+        invoice.deposited = false;
+        invoice.paid = false;
         invoice.created = uint32(block.timestamp);
         emit InvoiceCreated(invoice.id);
     }
@@ -97,6 +101,7 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
 
         uint256 refundAmount = invoice.balance;
         invoices[invoiceId].balance = 0;
+        invoices[invoiceId].refunded = true;
 
         if (invoice.isNativeToken) {
             payable(msg.sender).transfer(refundAmount);
