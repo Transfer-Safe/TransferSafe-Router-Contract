@@ -76,7 +76,7 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
         require(invoice.senderAddress == msg.sender, "FORBIDDEN");
         require(invoice.paid == false, "INVOICE_HAS_BEEN_PAID");
 
-        uint256 payoutAmount = SafeMath.sub(invoices[invoiceId].amount, invoices[invoiceId].fee);
+        uint256 payoutAmount = SafeMath.sub(invoices[invoiceId].balance, invoices[invoiceId].fee);
         invoices[invoiceId].balance = 0;
         if (invoice.isNativeToken) {
             nativeFeeBalance += invoice.fee;
