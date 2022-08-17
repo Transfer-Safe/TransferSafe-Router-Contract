@@ -12,10 +12,11 @@ struct Invoice {
     string id;
     uint256 amount;
     uint256 fee;
-    uint32 created;
+
     uint256 balance;
-    bool paid;
-    bool deposited;
+    uint256 paidAmount;
+    uint256 refundedAmount;
+
     bool isNativeToken;
     address tokenType;
     address[] availableTokenTypes;
@@ -24,15 +25,20 @@ struct Invoice {
     address senderAddress;
     string receipientName;
     string receipientEmail;
+
+    bool paid;
+    bool deposited;
     bool exist;
     bool instant;
     bool refunded;
 
     uint32 releaseLockTimeout;
+
     uint32 releaseLockDate;
     uint32 depositDate;
     uint32 confirmDate;
     uint32 refundDate;
+    uint32 createdDate;
 }
 
 contract TransferSafeRouter is Ownable, RouterConfigContract {
@@ -58,13 +64,15 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
         invoice.receipientAddress = msg.sender;
         invoice.releaseLockDate = uint32(block.timestamp) + invoice.releaseLockTimeout;
         invoice.fee = SafeMath.div(SafeMath.mul(invoice.amount, fee), 1000);
+        invoice.paidAmount = 0;
+        invoice.refundedAmount = 0;
         invoice.depositDate = 0;
         invoice.confirmDate = 0;
         invoice.refundDate = 0;
         invoice.refunded = false;
         invoice.deposited = false;
         invoice.paid = false;
-        invoice.created = uint32(block.timestamp);
+        invoice.createdDate = uint32(block.timestamp);
         invoices[invoice.id] = invoice;
         userInvoices[invoice.receipientAddress].push(invoice.id);
         emit InvoiceCreated(invoice.id);
@@ -80,6 +88,7 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
         invoices[invoiceId].balance = 0;
         if (invoice.isNativeToken) {
             nativeFeeBalance += invoice.fee;
+            invoices[invoiceId].paidAmount = payoutAmount;
             payable(msg.sender).transfer(payoutAmount);
         } else {
             tokensFeeBalances[invoice.tokenType] += invoice.fee;
