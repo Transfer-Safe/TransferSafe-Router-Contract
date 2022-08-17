@@ -58,8 +58,6 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
         invoice.receipientAddress = msg.sender;
         invoice.releaseLockDate = uint32(block.timestamp) + invoice.releaseLockTimeout;
         invoice.fee = SafeMath.div(SafeMath.mul(invoice.amount, fee), 1000);
-        invoices[invoice.id] = invoice;
-        userInvoices[invoice.receipientAddress].push(invoice.id);
         invoice.depositDate = 0;
         invoice.confirmDate = 0;
         invoice.refundDate = 0;
@@ -67,6 +65,8 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
         invoice.deposited = false;
         invoice.paid = false;
         invoice.created = uint32(block.timestamp);
+        invoices[invoice.id] = invoice;
+        userInvoices[invoice.receipientAddress].push(invoice.id);
         emit InvoiceCreated(invoice.id);
     }
 
