@@ -1,6 +1,6 @@
 {
   "name": "@transfer-safe/router",
-  "version": "0.0.21",
+  "version": "0.0.22",
   "description": "TransferSafe router smartcontract",
   "main": "index.js",
   "scripts": {
