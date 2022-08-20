@@ -50,7 +50,7 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
     mapping(address => string[]) private userInvoices;
 
     event PaymentReceived(string invoiceId);
-    event InvoiceWithdrawn(Invoice invoice, uint256 amount);
+    event InvoiceWithdrawn(Invoice invoice, uint256 amount, address recepient);
     event InvoiceRefunded(Invoice invoice, uint256 amount);
     event InvoiceCreated(string invoiceId);
 
@@ -103,7 +103,7 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
         if (invoice.isNativeToken) {
             nativeFeeBalance += invoice.fee;
             invoices[invoiceId].paidAmount = payoutAmount;
-            payable(msg.sender).transfer(payoutAmount);
+            // payable(msg.sender).transfer(payoutAmount);
         } else {
             tokensFeeBalances[invoice.tokenType] += invoice.fee;
             IERC20 token = IERC20(invoice.tokenType);
@@ -113,7 +113,7 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
         invoices[invoiceId].confirmDate = uint32(block.timestamp);
         invoices[invoiceId].paid = true;
 
-        emit InvoiceWithdrawn(invoices[invoiceId], payoutAmount);
+        emit InvoiceWithdrawn(invoices[invoiceId], payoutAmount, msg.sender);
     }
 
     function refundInvoice(string memory invoiceId) public {
@@ -127,7 +127,8 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
         invoices[invoiceId].refunded = true;
 
         if (invoice.isNativeToken) {
-            payable(msg.sender).transfer(refundAmount);
+            bool sent = payable(invoice.receipientAddress).send(refundAmount);
+            require(sent, "Failed to send funds");
         } else {
             IERC20 token = IERC20(invoice.tokenType);
             token.transfer(invoice.receipientAddress, refundAmount);
