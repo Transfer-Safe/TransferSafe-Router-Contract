@@ -78,6 +78,17 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
         emit InvoiceCreated(invoice.id);
     }
 
+    function listInvoices(address userAddress, uint256 take, uint256 skip) public view returns (Invoice[] memory) {
+        string[] memory userInvoiceIds = userInvoices[userAddress];
+        Invoice[] memory userInvoicesArray = new Invoice[](userInvoiceIds.length);
+        uint256 invoiceIndex = skip;
+        while (invoiceIndex < skip + take) {
+            userInvoicesArray[invoiceIndex] = invoices[userInvoiceIds[invoiceIndex]];
+            invoiceIndex = invoiceIndex + 1;
+        }
+        return userInvoicesArray;
+    }
+
     function confirmInvoice(string memory invoiceId) public {
         Invoice memory invoice = invoices[invoiceId];
         require(invoice.balance > 0, "INVOICE_NOT_BALANCED");
