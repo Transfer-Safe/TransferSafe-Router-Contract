@@ -84,13 +84,10 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
         if (userInvoiceIds.length == 0) {
             return userInvoicesArray;
         }
-        uint256 itemsLength = 0;
-        for (uint256 i = userInvoiceIds.length - 1 - skip; i >= 0; i--) {
+
+        for (uint256 i = 0; i < userInvoiceIds.length; i++) {
+            // TODO: respect take and skip pagination
             userInvoicesArray[i] = invoices[userInvoiceIds[i]];
-            itemsLength++;
-            if (itemsLength >= take) {
-                break;
-            }
         }
         return userInvoicesArray;
     }
