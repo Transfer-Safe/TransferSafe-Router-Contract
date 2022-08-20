@@ -136,7 +136,7 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
 
         emit PaymentReceived(invoiceId);
 
-        if (instant == true) {
+        if (instant == true || invoice.instant == true) {
             confirmInvoice(invoiceId);
         }
     }
