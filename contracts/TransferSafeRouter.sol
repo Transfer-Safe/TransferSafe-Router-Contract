@@ -43,7 +43,7 @@ struct Invoice {
 
 contract TransferSafeRouter is Ownable, RouterConfigContract {
     uint256 nativeFeeBalance = 0;
-    uint256 fee = 50;
+    uint256 fee = 10;
 
     mapping(address => uint256) tokensFeeBalances;
     mapping(string => Invoice) private invoices;
