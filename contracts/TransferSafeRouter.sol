@@ -135,6 +135,10 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
         invoices[invoiceId].deposited = true;
 
         emit PaymentReceived(invoiceId);
+
+        if (instant == true) {
+            confirmInvoice(invoiceId);
+        }
     }
 
     function depositErc20(string memory invoiceId, address tokenType, bool instant) public {
