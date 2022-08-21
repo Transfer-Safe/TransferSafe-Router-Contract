@@ -5,7 +5,7 @@ import "@typechain/hardhat";
 import "@nomiclabs/hardhat-ethers";
 import "@nomiclabs/hardhat-etherscan";
 
-const { API_URL, PRIVATE_KEY, ETHERSCAN_API_KEY } = process.env;
+const { API_URL, PRIVATE_KEY, ETHERSCAN_API_KEY, NETWORK } = process.env;
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -17,9 +17,11 @@ const config: HardhatUserConfig = {
       }
     }
   },
-  defaultNetwork: "polygon_mumbai",
+  defaultNetwork: NETWORK || "polygon_mumbai",
   networks: {
-    hardhat: {},
+    hardhat: {
+      
+    },
     polygon_mumbai: {
       url: API_URL || "",
       accounts: PRIVATE_KEY ? [`0x${PRIVATE_KEY}`] : [],

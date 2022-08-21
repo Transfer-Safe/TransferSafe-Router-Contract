@@ -75,6 +75,7 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
         invoice.deposited = false;
         invoice.paid = false;
         invoice.createdDate = uint32(block.timestamp);
+        invoice.isNativeToken = false;
         invoices[invoice.id] = invoice;
         userInvoices[invoice.receipientAddress].push(invoice.id);
         emit InvoiceCreated(invoice.id);
@@ -156,6 +157,7 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
 
         invoices[invoiceId].depositDate = uint32(block.timestamp);
         invoices[invoiceId].deposited = true;
+        invoices[invoiceId].isNativeToken = true;
 
         emit InvoiceDeposited(invoiceId);
 

@@ -8,7 +8,9 @@
     "compile": "hardhat compile",
     "verify": "hardhat verify",
     "deploy": "npm run compile && hardhat run scripts/deploy.ts",
-    "release": "release-it"
+    "release": "release-it",
+    "test": "NETWORK=hardhat npm run compile && NETWORK=hardhat hardhat test",
+    "node": "hardhat node"
   },
   "author": "Alexey Landyrev",
   "license": "ISC",
@@ -28,7 +30,7 @@
     "@types/node": "^18.0.5",
     "chai": "^4.3.6",
     "dotenv": "^16.0.1",
-    "ethers": "^5.6.9",
+    "ethers": "^5.7.0",
     "hardhat": "^2.10.1",
     "hardhat-gas-reporter": "^1.0.8",
     "solidity-coverage": "^0.7.21",
