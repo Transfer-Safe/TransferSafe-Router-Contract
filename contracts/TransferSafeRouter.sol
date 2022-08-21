@@ -44,6 +44,7 @@ struct Invoice {
 contract TransferSafeRouter is Ownable, RouterConfigContract {
     uint256 nativeFeeBalance = 0;
     uint256 fee = 10;
+    uint256 slippageLimit = 5;
 
     mapping(address => uint256) tokensFeeBalances;
     mapping(string => Invoice) private invoices;
@@ -53,6 +54,7 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
     event InvoiceConfirmed(Invoice invoice, uint256 amount, address recepient);
     event InvoiceRefunded(Invoice invoice, uint256 amount);
     event InvoiceCreated(string invoiceId);
+    event SlippageCalculated(uint256 slippage);
 
     constructor(uint256 _chainId) Ownable() RouterConfigContract(_chainId) {
         chainId = _chainId;
@@ -127,9 +129,11 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
         invoices[invoiceId].refunded = true;
 
         if (invoice.isNativeToken) {
+            // TODO: check for releaseLockDate
             bool sent = payable(invoice.receipientAddress).send(refundAmount);
             require(sent, "Failed to send funds");
         } else {
+            revert("Not implemented");
             IERC20 token = IERC20(invoice.tokenType);
             token.transfer(invoice.receipientAddress, refundAmount);
         }
@@ -142,6 +146,10 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
     function deposit(string memory invoiceId, bool instant) payable public {
         Invoice memory invoice = invoices[invoiceId];
         require(invoice.balance == 0, "INVOICE_NOT_BALANCED");
+
+        uint256 amountToBePaid = amountInNativeCurrency(invoiceId);
+        uint256 transactionAmount = msg.value;
+        assertSlippage(transactionAmount, amountToBePaid);
 
         invoices[invoiceId].balance = msg.value;
         invoices[invoiceId].senderAddress = msg.sender;
@@ -156,19 +164,23 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
         }
     }
 
+    function assertSlippage(uint256 originalValue, uint256 value) private {
+        uint256 diff;
+        if (originalValue > value) {
+            diff = SafeMath.sub(originalValue, value);
+        } else {
+            diff = SafeMath.sub(value, originalValue);
+        }
+        uint256 slippage = SafeMath.div(SafeMath.mul(diff, 1000), originalValue);
+        emit SlippageCalculated(slippage);
+
+        if (slippage > slippageLimit) {
+            revert("SLIPPAGE_LIMIT_EXCEEDED");
+        }
+    }
+
     function depositErc20(string memory invoiceId, address tokenType, bool instant) public {
-        Invoice memory invoice = invoices[invoiceId];
-        require(invoice.balance == 0, "INVOICE_NOT_BALANCED");
-
-        IERC20 token = IERC20(invoice.tokenType);
-        token.transferFrom(msg.sender, address(this), invoice.amount);
-        invoices[invoiceId].balance = invoice.amount;
-        invoices[invoiceId].tokenType = tokenType;
-
-        invoices[invoiceId].depositDate = uint32(block.timestamp);
-        invoices[invoiceId].deposited = true;
-
-        emit InvoiceDeposited(invoiceId);
+        revert("Not implemented");
     }
 
     function getNativeFeeBalance() public view returns (uint256) {
