@@ -49,8 +49,8 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
     mapping(string => Invoice) private invoices;
     mapping(address => string[]) private userInvoices;
 
-    event PaymentReceived(string invoiceId);
-    event InvoiceWithdrawn(Invoice invoice, uint256 amount, address recepient);
+    event InvoiceDeposited(string invoiceId);
+    event InvoiceConfirmed(Invoice invoice, uint256 amount, address recepient);
     event InvoiceRefunded(Invoice invoice, uint256 amount);
     event InvoiceCreated(string invoiceId);
 
@@ -113,7 +113,7 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
         invoices[invoiceId].confirmDate = uint32(block.timestamp);
         invoices[invoiceId].paid = true;
 
-        emit InvoiceWithdrawn(invoices[invoiceId], payoutAmount, msg.sender);
+        emit InvoiceConfirmed(invoices[invoiceId], payoutAmount, msg.sender);
     }
 
     function refundInvoice(string memory invoiceId) public {
@@ -149,7 +149,7 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
         invoices[invoiceId].depositDate = uint32(block.timestamp);
         invoices[invoiceId].deposited = true;
 
-        emit PaymentReceived(invoiceId);
+        emit InvoiceDeposited(invoiceId);
 
         if (instant == true || invoice.instant == true) {
             confirmInvoice(invoiceId);
@@ -168,7 +168,7 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
         invoices[invoiceId].depositDate = uint32(block.timestamp);
         invoices[invoiceId].deposited = true;
 
-        emit PaymentReceived(invoiceId);
+        emit InvoiceDeposited(invoiceId);
     }
 
     function getNativeFeeBalance() public view returns (uint256) {
