@@ -9,7 +9,7 @@
     "verify": "hardhat verify",
     "deploy": "npm run compile && hardhat run scripts/deploy.ts",
     "release": "release-it",
-    "test": "NETWORK=hardhat npm run compile && NETWORK=hardhat hardhat test",
+    "test": "NETWORK=hardhat npm run compile && NETWORK=hardhat hardhat test > test-report.json",
     "node": "hardhat node"
   },
   "author": "Alexey Landyrev",
