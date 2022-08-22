@@ -33,6 +33,7 @@
     "ethers": "^5.7.0",
     "hardhat": "^2.10.1",
     "hardhat-gas-reporter": "^1.0.8",
+    "mocha-junit-reporter": "^2.0.2",
     "solidity-coverage": "^0.7.21",
     "ts-node": "^10.9.1",
     "typechain": "^8.1.0",

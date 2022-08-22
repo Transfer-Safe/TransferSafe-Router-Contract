@@ -10,3 +10,4 @@ cache
 artifacts
 
 dist
+test-report.xml
