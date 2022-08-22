@@ -1,11 +1,10 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { expect } from "chai";
+import { assert, expect } from "chai";
 import { BigNumber, constants } from "ethers";
 import { ethers } from 'hardhat';
 import { TransferSafeRouter } from "../typechain-types";
 import { InvoiceStruct } from "../typechain-types/contracts/TransferSafeRouter";
 
-const TEST_ADDRESS = '0x16531e83559cebad5d6d5269f91e7995aaded6de';
 const CHAIN_ID = 80001;
 const INVOICE_ID = '123';
 const INITIAL_INVOICE: InvoiceStruct = {
@@ -39,10 +38,14 @@ const INITIAL_INVOICE: InvoiceStruct = {
 describe("Token contract", function () {
   let router: TransferSafeRouter;
   let owner: SignerWithAddress;
+  let invoiceCreator: SignerWithAddress;
+  let invoiceSender: SignerWithAddress;
 
   beforeEach(async () => {
-    const [newOowner] = await ethers.getSigners();
-    owner = newOowner;
+    const [user0, user1, user2] = await ethers.getSigners();
+    owner = user0;
+    invoiceCreator = user1;
+    invoiceSender = user2;
     const TransferSafeRouter = await ethers.getContractFactory("TransferSafeRouter");
     router = await TransferSafeRouter.deploy(CHAIN_ID);
     await router.deployed();
@@ -50,12 +53,21 @@ describe("Token contract", function () {
 
   it("Should have proper initial values", async function () {
     expect(await router.getFee()).to.equal(BigNumber.from(10));
-    await router.setFee(BigNumber.from(20));
-    expect(await router.getFee()).to.equal(BigNumber.from(20));
+    expect(await router.hasRole(await router.DEFAULT_ADMIN_ROLE(), owner.address));
+    expect(await router.hasRole(await router.ADMIN(), owner.address));
+  });
+
+  it("Should allow to change fee for admins", async function () {
+    await router.setFee(BigNumber.from(30));
+    expect(await router.getFee()).to.be.equal(BigNumber.from(30));
+  });
+
+  it("Should not allow to change fee for non admins", async function () {
+    await assert.isRejected(router.connect(invoiceCreator).setFee(BigNumber.from(10)), /.*Access denied.*/);
   });
 
   it('should create invoice with proper init values', async () => {
-    await router.createInvoice(INITIAL_INVOICE);
+    await router.connect(invoiceCreator).createInvoice(INITIAL_INVOICE);
     const createdInvoice = await router.getInvoice(INVOICE_ID);
 
     expect(createdInvoice.id).to.equal(INVOICE_ID);
@@ -70,7 +82,7 @@ describe("Token contract", function () {
     expect(createdInvoice.isNativeToken).to.equal(false);
     expect(createdInvoice.paid).to.equal(false);
     expect(createdInvoice.paidAmount).to.equal(constants.Zero);
-    expect(createdInvoice.receipientAddress).to.equal(owner.address);
+    expect(createdInvoice.receipientAddress).to.equal(invoiceCreator.address);
     expect(createdInvoice.receipientEmail).to.equal(INITIAL_INVOICE.receipientEmail);
     expect(createdInvoice.ref).to.equal(INITIAL_INVOICE.ref);
     expect(createdInvoice.refundDate).to.equal(constants.Zero);
@@ -80,4 +92,9 @@ describe("Token contract", function () {
     expect(createdInvoice.senderAddress).to.equal(constants.AddressZero);
     expect(createdInvoice.tokenType).to.equal(constants.AddressZero);
   });
+
+  it('should now allow to create invoices with dublicated ids', async () => {
+    await router.createInvoice(INITIAL_INVOICE);
+    await assert.isRejected(router.createInvoice(INITIAL_INVOICE));
+  })
 });

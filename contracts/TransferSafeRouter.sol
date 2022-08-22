@@ -2,46 +2,14 @@
 
 pragma solidity >=0.8.9;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+import "./TransferSafeAccessControl.sol";
 import "./RouterConfig.sol";
+import "./Invoice.sol";
 
-struct Invoice {
-    string id;
-    uint256 amount;
-    uint256 fee;
-
-    uint256 balance;
-    uint256 paidAmount;
-    uint256 refundedAmount;
-
-    bool isNativeToken;
-    address tokenType;
-    address[] availableTokenTypes;
-    string ref;
-    address receipientAddress;
-    address senderAddress;
-    string receipientName;
-    string receipientEmail;
-
-    bool paid;
-    bool deposited;
-    bool exist;
-    bool instant;
-    bool refunded;
-
-    uint32 releaseLockTimeout;
-
-    uint32 releaseLockDate;
-    uint32 depositDate;
-    uint32 confirmDate;
-    uint32 refundDate;
-    uint32 createdDate;
-}
-
-contract TransferSafeRouter is Ownable, RouterConfigContract {
+contract TransferSafeRouter is TransferSafeAccessControl, RouterConfigContract {
     uint256 nativeFeeBalance = 0;
     uint256 fee = 10;
     uint256 slippageLimit = 5;
@@ -56,7 +24,7 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
     event InvoiceCreated(string invoiceId);
     event SlippageCalculated(uint256 slippage);
 
-    constructor(uint256 _chainId) Ownable() RouterConfigContract(_chainId) {
+    constructor(uint256 _chainId) TransferSafeAccessControl() RouterConfigContract(_chainId) {
         chainId = _chainId;
     }
 
@@ -207,18 +175,18 @@ contract TransferSafeRouter is Ownable, RouterConfigContract {
         return userInvoicesArray;
     }
 
-    function widthdrawFee(address destination, uint256 amount) public onlyOwner {
+    function widthdrawFee(address destination, uint256 amount) public onlyAdmin {
         nativeFeeBalance = SafeMath.sub(nativeFeeBalance, amount);
         payable(destination).transfer(amount);
     }
 
-    function widthdrawErc20Fee(address destination, address tokenType, uint256 amount) public onlyOwner {
+    function widthdrawErc20Fee(address destination, address tokenType, uint256 amount) public onlyAdmin {
         tokensFeeBalances[tokenType] = SafeMath.sub(tokensFeeBalances[tokenType], amount);
         IERC20 token = IERC20(tokenType);
         token.transfer(destination, amount);
     }
 
-    function setFee(uint256 newFee) public onlyOwner {
+    function setFee(uint256 newFee) public onlyAdmin {
         fee = newFee;
     }
 
