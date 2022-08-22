@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { reporters } from 'mocha';
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 import "@typechain/hardhat";
@@ -31,9 +32,9 @@ const config: HardhatUserConfig = {
     apiKey: ETHERSCAN_API_KEY
   },
   mocha: {
-    reporter: 'mocha-junit-reporter',
+    reporter: reporters.JSON,
     reporterOptions: {
-      mochaFile: './test-report.xml'
+      mochaFile: './test-report.json'
     }
   }
 };
