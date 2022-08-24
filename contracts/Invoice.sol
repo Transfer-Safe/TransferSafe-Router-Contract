@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: None
+
+pragma solidity >=0.8.9;
+
 struct Invoice {
     string id;
     uint256 amount;

@@ -33,17 +33,17 @@ contract TransferSafeRouter is TransferSafeAccessControl, RouterConfigContract {
         invoice.exist = true;
         invoice.receipientAddress = msg.sender;
         invoice.releaseLockDate = uint32(block.timestamp) + invoice.releaseLockTimeout;
-        invoice.fee = SafeMath.div(SafeMath.mul(invoice.amount, fee), 1000);
+        invoice.fee = fee;
         invoice.paidAmount = 0;
         invoice.refundedAmount = 0;
         invoice.depositDate = 0;
         invoice.confirmDate = 0;
         invoice.refundDate = 0;
         invoice.refunded = false;
+        invoice.balance = 0;
         invoice.deposited = false;
         invoice.paid = false;
         invoice.createdDate = uint32(block.timestamp);
-        invoice.isNativeToken = false;
         invoices[invoice.id] = invoice;
         userInvoices[invoice.receipientAddress].push(invoice.id);
         emit InvoiceCreated(invoice.id);
@@ -69,16 +69,20 @@ contract TransferSafeRouter is TransferSafeAccessControl, RouterConfigContract {
         require(invoice.senderAddress == msg.sender, "FORBIDDEN");
         require(invoice.paid == false, "INVOICE_HAS_BEEN_PAID");
 
-        uint256 payoutAmount = SafeMath.sub(invoices[invoiceId].balance, invoices[invoiceId].fee);
-        invoices[invoiceId].balance = 0;
-        if (invoice.isNativeToken) {
-            nativeFeeBalance += invoice.fee;
+        uint256 payoutAmount = 0;
+        if (invoice.balance > 0) {
+             uint256 invoiceFee = SafeMath.mul(
+                SafeMath.div(invoices[invoiceId].balance, 1000),
+                invoice.fee
+            );
+            payoutAmount = SafeMath.sub(invoices[invoiceId].balance, invoiceFee);
+            invoices[invoiceId].balance = 0;
+            nativeFeeBalance += invoiceFee;
             invoices[invoiceId].paidAmount = payoutAmount;
-            // payable(msg.sender).transfer(payoutAmount);
+            bool isSent = payable(invoice.receipientAddress).send(payoutAmount);
+            require(isSent, "FAILED_TO_SEND");
         } else {
-            tokensFeeBalances[invoice.tokenType] += invoice.fee;
-            IERC20 token = IERC20(invoice.tokenType);
-            token.transfer(invoice.receipientAddress, payoutAmount);
+            revert("NOT_IMPLEMENTED");
         }
 
         invoices[invoiceId].confirmDate = uint32(block.timestamp);
@@ -116,9 +120,11 @@ contract TransferSafeRouter is TransferSafeAccessControl, RouterConfigContract {
         Invoice memory invoice = invoices[invoiceId];
         require(invoice.balance == 0, "INVOICE_NOT_BALANCED");
 
-        uint256 amountToBePaid = amountInNativeCurrency(invoiceId);
-        uint256 transactionAmount = msg.value;
-        assertSlippage(transactionAmount, amountToBePaid);
+        if (config.chainlinkNativeTokenAddress != address(0)) {
+            uint256 amountToBePaid = amountInNativeCurrency(invoiceId);
+            uint256 transactionAmount = msg.value;
+            assertSlippage(transactionAmount, amountToBePaid);
+        }
 
         invoices[invoiceId].balance = msg.value;
         invoices[invoiceId].senderAddress = msg.sender;

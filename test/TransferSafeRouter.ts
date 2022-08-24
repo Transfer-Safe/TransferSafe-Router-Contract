@@ -1,11 +1,11 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert, expect } from "chai";
-import { BigNumber, constants } from "ethers";
+import { BigNumber, constants, utils } from "ethers";
 import { ethers } from 'hardhat';
 import { TransferSafeRouter } from "../typechain-types";
 import { InvoiceStruct } from "../typechain-types/contracts/TransferSafeRouter";
 
-const CHAIN_ID = 80001;
+const CHAIN_ID = 123;
 const INVOICE_ID = '123';
 const INITIAL_INVOICE: InvoiceStruct = {
   amount: BigNumber.from(1000),
@@ -74,12 +74,13 @@ describe("Token contract", function () {
     expect(createdInvoice.amount).to.equal(INITIAL_INVOICE.amount);
     expect(createdInvoice.availableTokenTypes).to.deep.equal([]);
     expect(createdInvoice.confirmDate).to.equal(BigNumber.from(0));
+    expect(createdInvoice.balance).to.equal(BigNumber.from(0));
     expect(createdInvoice.depositDate).to.equal(BigNumber.from(0));
     expect(createdInvoice.deposited).to.equal(false);
     expect(createdInvoice.exist).to.equal(true);
-    expect(createdInvoice.fee).to.equal(BigNumber.from(INITIAL_INVOICE.amount).div(100));
+    expect(createdInvoice.fee).to.equal(await router.getFee());
     expect(createdInvoice.instant).to.equal(INITIAL_INVOICE.instant);
-    expect(createdInvoice.isNativeToken).to.equal(false);
+    expect(createdInvoice.isNativeToken).to.equal(INITIAL_INVOICE.isNativeToken);
     expect(createdInvoice.paid).to.equal(false);
     expect(createdInvoice.paidAmount).to.equal(constants.Zero);
     expect(createdInvoice.receipientAddress).to.equal(invoiceCreator.address);
@@ -97,4 +98,14 @@ describe("Token contract", function () {
     await router.createInvoice(INITIAL_INVOICE);
     await assert.isRejected(router.createInvoice(INITIAL_INVOICE));
   })
+
+  it('should deduct proper fee when confirming', async () => {
+    const value = utils.parseEther('3');
+    await router.connect(invoiceCreator).createInvoice(INITIAL_INVOICE);
+    await router.connect(invoiceSender).deposit(INITIAL_INVOICE.id, true, {
+      value,
+    });
+    const invoice = await router.getInvoice(INITIAL_INVOICE.id);
+    expect(await router.getNativeFeeBalance()).to.equal(value.div(invoice.fee.mul(10)));
+  });
 });
