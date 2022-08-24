@@ -27,9 +27,35 @@ const config: HardhatUserConfig = {
       url: API_URL || "",
       accounts: PRIVATE_KEY ? [`0x${PRIVATE_KEY}`] : [],
     },
+    evmos_test: {
+      url: 'https://eth.bd.evmos.dev:8545',
+      accounts: PRIVATE_KEY ? [`0x${PRIVATE_KEY}`] : [],
+    },
+    evmos: {
+      url: 'https://evmos-json-rpc.stakely.io',
+      accounts: PRIVATE_KEY ? [`0x${PRIVATE_KEY}`] : [],
+    }
   },
   etherscan: {
-    apiKey: ETHERSCAN_API_KEY
+    apiKey: ETHERSCAN_API_KEY,
+    customChains: [
+      {
+        network: "evmos_test",
+        chainId: 9000,
+        urls: {
+          apiURL: "https://evm.evmos.dev/api",
+          browserURL: "https://evm.evmos.dev"
+        }
+      },
+      {
+        network: "evmos",
+        chainId: 9001,
+        urls: {
+          apiURL: "https://evm.evmos.org/api",
+          browserURL: "https://evm.evmos.org"
+        }
+      }
+    ]
   },
   mocha: {
     reporter: reporters.JSON,
