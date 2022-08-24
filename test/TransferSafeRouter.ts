@@ -1,10 +1,11 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { assert, expect } from "chai";
+import { assert, expect, util } from "chai";
 import { BigNumber, constants, utils } from "ethers";
 import { ethers } from 'hardhat';
 import { TransferSafeRouter } from "../typechain-types";
 import { InvoiceStruct } from "../typechain-types/contracts/TransferSafeRouter";
 
+const INITIAL_BALANCE = 10000;
 const CHAIN_ID = 123;
 const INVOICE_ID = '123';
 const INITIAL_INVOICE: InvoiceStruct = {
@@ -99,13 +100,21 @@ describe("Token contract", function () {
     await assert.isRejected(router.createInvoice(INITIAL_INVOICE));
   })
 
-  it('should deduct proper fee when confirming', async () => {
-    const value = utils.parseEther('3');
+  it('should deposit and confirm invoice with proper values', async () => {
+    const transferAmount = 3000;
+    const serviceFee = transferAmount * (await router.getFee()).toNumber() / 1000;
+
+    const value = utils.parseEther(transferAmount.toString());
     await router.connect(invoiceCreator).createInvoice(INITIAL_INVOICE);
-    await router.connect(invoiceSender).deposit(INITIAL_INVOICE.id, true, {
+    await router.connect(invoiceSender).deposit(INITIAL_INVOICE.id, false, {
       value,
     });
+    await router.connect(invoiceSender).confirmInvoice(INITIAL_INVOICE.id);
     const invoice = await router.getInvoice(INITIAL_INVOICE.id);
     expect(await router.getNativeFeeBalance()).to.equal(value.div(invoice.fee.mul(10)));
+    const creatorBalance = (await invoiceCreator.getBalance()).mul(10).div(constants.WeiPerEther).toNumber() / 10;
+    const senderBalance = (await invoiceSender.getBalance()).mul(10).div(constants.WeiPerEther).toNumber() / 10;
+    expect(creatorBalance).to.closeTo(INITIAL_BALANCE + transferAmount - serviceFee, 1);
+    expect(senderBalance).to.closeTo(INITIAL_BALANCE - transferAmount, 1);
   });
 });
