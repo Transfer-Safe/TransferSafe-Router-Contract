@@ -31,6 +31,11 @@ const config: HardhatUserConfig = {
       url: 'https://eth.bd.evmos.dev:8545',
       accounts: PRIVATE_KEY ? [`0x${PRIVATE_KEY}`] : [],
       chainId: 9000,
+    },
+    evmos: {
+      url: 'https://eth.bd.evmos.org:8545',
+      accounts: PRIVATE_KEY ? [`0x${PRIVATE_KEY}`] : [],
+      chainId: 9001,
     }
   },
   etherscan: {
@@ -42,6 +47,14 @@ const config: HardhatUserConfig = {
         urls: {
           apiURL: 'https://evm.evmos.dev/api',
           browserURL: 'https://evm.evmos.dev',
+        }
+      },
+      {
+        chainId: 9001,
+        network: 'evmos',
+        urls: {
+          apiURL: 'https://evm.evmos.org/api',
+          browserURL: 'https://evm.evmos.org',
         }
       }
     ]

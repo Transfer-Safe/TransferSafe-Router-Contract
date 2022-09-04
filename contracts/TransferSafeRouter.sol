@@ -214,6 +214,9 @@ contract TransferSafeRouter is TransferSafeAccessControl, RouterConfigContract {
         Invoice memory invoice = invoices[invoiceId];
         require(invoice.exist, "INVOICE_NOT_EXIST!");
         address chainlinkAddress = config.chainlinkNativeTokenAddress;
+        if (chainlinkAddress == address(0)) {
+            return 0;
+        }
         AggregatorV3Interface priceFeed = AggregatorV3Interface(chainlinkAddress);
         (, int256 price, , , ) = priceFeed.latestRoundData();
         uint8 decimals = priceFeed.decimals();
